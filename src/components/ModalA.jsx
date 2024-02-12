@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { FaArrowAltCircleRight } from "react-icons/fa";
 import { FaArrowAltCircleLeft } from "react-icons/fa";
 import { IoCloseCircleSharp } from "react-icons/io5";
+import Modal from 'react-modal';
 
 const customStyles = {
     content: {
@@ -16,7 +17,7 @@ const customStyles = {
     },
   };
 
-  
+  Modal.setAppElement('#root'); 
 const ModalA = () => {
   const [contacts, setContacts] = useState([]);
   const [all,setAll] = useState(false)
@@ -26,7 +27,10 @@ const ModalA = () => {
   const [showEvenIds, setShowEvenIds] = useState(false);
   const { register, handleSubmit, reset } = useForm();
   const [page,setPage] = useState(1)
-  
+  let subtitle;
+  const [modalIsOpen, setIsOpen] = React.useState(false);
+
+
   const getContacts = (url) => {
       fetch(url)
           .then(res => res.json())
@@ -68,9 +72,9 @@ const ModalA = () => {
       const result = contacts.filter((contact) => {
         const text = contact.country.name.toLowerCase();
         const phone = contact.phone
-        console.log('this text is - ',text)
+        // console.log('this text is - ',text)
         if(text.search(`${query}`) >= 0){
-          console.log(contact)
+          // console.log(contact)
           return true;
         }
         else if(phone.search(`${query}`) >= 0){
@@ -81,6 +85,19 @@ const ModalA = () => {
       setContacts(result)
       reset()
       console.log('result array ',result)
+    }
+
+    function openModal() {
+      setIsOpen(true);
+    }
+  
+    function afterOpenModal() {
+      // references are now sync'd and can be accessed.
+      subtitle.style.color = '#f00';
+    }
+  
+    function closeModal() {
+      setIsOpen(false);
     }
     
     return (
@@ -118,7 +135,7 @@ const ModalA = () => {
                   }
                   return (
                     <div key={contact.id}>
-                      <div>
+                      <div onClick={openModal}>
                         <div className="card" style={{ width: '18rem' }}>
                     <div className="card-body">
                       <h5 className="card-title">Contact Id : {contact.id}</h5>
@@ -152,9 +169,31 @@ const ModalA = () => {
              </p>
 
           </div>
-          {/* </Modal>
+          
+          <Modal
+            isOpen={modalIsOpen}
+            onAfterOpen={afterOpenModal}
+            onRequestClose={closeModal}
+            style={customStyles}
+            contentLabel="Example Modal"
+          >
+            <h2 ref={(_subtitle) => (subtitle = _subtitle)}>Hello</h2>
+            
+            <div>I am a modal</div>
+            <div class="card">
+            <div class="card-header text-center ">
+                Country 
+            </div>
+            <div class="card-body">
+                <h4 class="card-title">Country Name </h4>
+                <h5 class="card-title">Phone </h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content...</p>
+                
+            </div>
 
-          <Modal2 modal2IsOpen={modal2IsOpen}  closeModal2={closeModal2}></Modal2> */}
+            <button onClick={closeModal}>close X</button>
+           </div>
+          </Modal>
 
         </div>        
     );

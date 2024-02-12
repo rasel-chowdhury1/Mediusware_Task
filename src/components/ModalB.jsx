@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Modal from 'react-modal';
+import { useForm } from 'react-hook-form';
 import { FaArrowAltCircleRight } from "react-icons/fa";
 import { FaArrowAltCircleLeft } from "react-icons/fa";
 import { IoCloseCircleSharp } from "react-icons/io5";
@@ -15,12 +16,17 @@ const customStyles = {
       transform: 'translate(-50%, -50%)',
     },
   };
+
+Modal.setAppElement('#root');
 const Modal2 = () => {
+  let subtitle;
+  const { register, handleSubmit, reset } = useForm();
   const [contacts, setContacts] = useState([]);
   const [count, setCount] = useState(null);
   const [nextPage, setNextPage] = useState(null);
   const [previousPage, setPreviousPage] = useState(null);
   const [page,setPage] = useState(1)
+  const [modalIsOpen, setIsOpen] = React.useState(false);
 
   const getContacts = (url) => {
       fetch(url)
@@ -52,10 +58,56 @@ const Modal2 = () => {
       }
   };
 
+  function openModal() {
+    setIsOpen(true);
+  }
+
+  function afterOpenModal() {
+    // references are now sync'd and can be accessed.
+    subtitle.style.color = '#f00';
+  }
+
+  function closeModal() {
+    setIsOpen(false);
+  }
+
+  const onSubmit = (data) => {
+    const query = data.searchQuery.toLowerCase();
+    
+    const result = contacts.filter((contact) => {
+      const text = contact.country.name.toLowerCase();
+      const phone = contact.phone
+      console.log('this text is - ',text)
+      if(text.search(`${query}`) >= 0){
+        // console.log(contact)
+        return true;
+      }
+      else if(phone.search(`${query}`) >= 0){
+        return true
+      }
+    })
+    
+    setContacts(result)
+    reset()
+    console.log('result array ',result)
+  }
+
    
     return (
         <div >
         <h2 className='text-center'>Modal-2</h2>
+
+        <div>
+            <form onSubmit={handleSubmit(onSubmit)} className="row gy-2 gx-3 align-items-center mb-4">
+                <div className="col-auto">
+                    <input {...register("searchQuery", {required: true})} type="text" className="form-control" placeholder="Search Contact"/>
+                </div>
+                <div className="col-auto">
+                    
+                    <input type="submit" value="Search" className="btn btn-primary" />
+                </div>
+            </form>
+          </div>
         
 
         <div className='mt-4'>
@@ -72,7 +124,7 @@ const Modal2 = () => {
                 {contacts.map((contact) => {
                   return (
                     <div key={contact.id}>
-                      <div>
+                      <div onClick={openModal} >
                         <div className="card" style={{ width: '18rem' }}>
                     <div className="card-body">
                       <h5 className="card-title">Contact Id : {contact.id}</h5>
@@ -95,8 +147,31 @@ const Modal2 = () => {
              </p>
 
         </div>
-      {/* </Modal> */}
-      {/* <Modal1 modal1IsOpen={modal1IsOpen} closeModal1={closeModal1}></Modal1> */}
+
+            <Modal
+            isOpen={modalIsOpen}
+            onAfterOpen={afterOpenModal}
+            onRequestClose={closeModal}
+            style={customStyles}
+            contentLabel="Example Modal"
+          >
+            <h2 ref={(_subtitle) => (subtitle = _subtitle)}>Hello</h2>
+            
+            <div>I am a modal</div>
+            <div class="card">
+            <div class="card-header text-center ">
+                Country 
+            </div>
+            <div class="card-body">
+                <h4 class="card-title">Country Name </h4>
+                <h5 class="card-title">Phone </h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content...</p>
+                
+            </div>
+
+            <button onClick={closeModal}>close X</button>
+           </div>
+          </Modal>
         </div>
     );
 };
